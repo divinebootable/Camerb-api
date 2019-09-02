@@ -3,92 +3,57 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
 const knex = require('knex');
-
+const morgan = require('morgan'); // logs requests
+const helmet = require('helmet');// creates headers that protect from attacks (security)
 const auth = require('./auth');
-const router  = require('./routes/users.js');
+const main = require('./controller/main');
+const services = require('./controller/services');
+
 const app = express();
 
-//https://github.com/w3cj/users-stickers-CRUD
 
-const database ={
-	users:[
-	 {
-		id:'123',
-		name: 'Verla',
-		email: 'Verla@gmail.com',
-		joined:new Date()
-	 },
-	 {
-		id:'124',
-		name: 'Asheri',
-		email: 'Asheri@gmail.com',
-		joined:new Date()
-	 }
-	],
+// db Connection w/ localhost
 
-	login:[
-     {
-         id:'550',
-         hash:'',
-         email: 'Verla@gmail.com'
+const db= knex({
+
+  client: 'pg',
+  connection: {
+    host : '127.0.0.1', 
+    user : 'postgres',
+    password : 'megathrone',
+    database : 'camerb'  
+  }
+});
 
 
-     }
-
-
-	]
-}
-app.use(cors())
+app.use(helmet());
+app.use(morgan('tiny'));
+app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: true
-}));// able to parse nested objects
+}));// To parse nested objects
+
+// App Routes - Auth
 app.use('/auth', auth);
-app.use(router);
+//user Routes
+app.get('/users', (req, res) => main.getUser(req, res, db))
+app.post('/users', (req, res) => main.postUser(req, res, db))
+app.put('/users', (req, res) => main.putUser(req, res, db))
+app.delete('/users', (req, res) => main.deleteUser(req, res, db))
+// service Routes
+app.get('/services', (req, res) => services.getService(req, res, db))
+app.post('/services', (req, res) => services.postService(req, res, db))
+app.put('/services', (req, res) => services.putService(req, res, db))
+app.delete('/services', (req, res) => services.deleteService(req, res, db))
 
 
-router.get('/', (req,res)=>{
-	res.send(database.users);
-})
+// App server Connection
 
-//let create a basic route to make sure everthing is working
-/**app.get('/',(req,res)=>{
-	res.send(database.users);
-
-app.post('/signin', (req, res)=>{
-	bcrypt.compare("apples", '$2a$10$g2MVSvl.cmWgs2SvRNWKbOAR3SXrAomMdqtTkjrubshGfPq1UkMxe', function(err, res) {
-    console.log('First guess', res)
-    });
-   bcrypt.compare("veggies", '$2a$10$g2MVSvl.cmWgs2SvRNWKbOAR3SXrAomMdqtTkjrubshGfPq1UkMxe', function(err, res) {
-    console.log('second guess', res)
-});
-   if(req.body.email === database.users[0].email && req.body.password === database.users[0].password){
-   	res.json('success');
-   } else{
-   	res.status(400).json('error logging in');
-   }
-}) **/
-
-//bcrypt.hash("bacon", null, null, function(err, hash) {  seller_review_log
-//});
-
-// Load hash from your password DB.
-//bcrypt.compare("bacon", hash, function(err, res) {
-    // res == true
-//});
-//bcrypt.compare("veggies", hash, function(err, res) {
-    // res = false
-//});
 app.listen(3001,()=>{
 	console.log('app is running on port 3001'); // just to make sure, tho nodemon is doing it, still love saying it
 });
 
 
-  //  Routes
-//1) res = this is working
-//1) register(buyer, seller) --> POST = success/fail
-//2) signin --> POST = success/fail
-//3) signup --> POST = new user object
- //return after each user is created
-//4) profile : user --> GET = user
+  
 

@@ -44,7 +44,7 @@ router.post('/signin', (req,res)=>{
 
 
 router.post('/signup', (req,res)=>{
-	const {first_name,last_name,email,password,mobile_number,street_address,city,state,country, zip,usertype,created_on} = req.body;
+	const {first_name,last_name,email,password,mobile_number,usertype,created_on} = req.body;
 	const hash = bcrypt.hashSync(password);
 	db.transaction(trx =>{
 		trx.insert({
@@ -61,11 +61,6 @@ router.post('/signup', (req,res)=>{
 				last_name:last_name,
 				email:loginEmail[0],
 				mobile_number:mobile_number,
-				street_address:street_address,
-				city:city,
-		        state:state,
-		        country:country,
-		        zip: zip,
 		        usertype:usertype,
 		        created_on:new Date()
 				})
